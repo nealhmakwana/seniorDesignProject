@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'dart:ui'; // Import this for ImageFilter.
-import 'package:charts_flutter/flutter.dart' as charts;
 
-class RecentActivityWithBarChart extends StatefulWidget {
-  @override
-  _RecentActivityWithBarChartState createState() =>
-      _RecentActivityWithBarChartState();
-}
-
-class _RecentActivityWithBarChartState
-    extends State<RecentActivityWithBarChart> {
+class RecentActivityGraphWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -38,7 +31,7 @@ class _RecentActivityWithBarChartState
                       Icon(Icons.bar_chart, color: Colors.black),
                       SizedBox(width: 8),
                       Text(
-                        'Past Workouts',
+                        'Recent Activity',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -50,24 +43,81 @@ class _RecentActivityWithBarChartState
                   SizedBox(height: 30),
                   Container(
                     height: 200,
-                    child: charts.BarChart(
-                      createSampleData(),
-                      animate: true,
-                      domainAxis: new charts.OrdinalAxisSpec(),
-                      primaryMeasureAxis: charts.NumericAxisSpec(
-                        renderSpec: charts.GridlineRendererSpec(
-                          // Change the line color to dark grey
-                          lineStyle: charts.LineStyleSpec(
-                            color: charts.MaterialPalette.gray.shadeDefault,
+                    child: LineChart(
+                      LineChartData(
+                        minY: 50, // Set minimum y-value to include 50
+                        maxY: 100, // Set maximum y-value to include 100
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: true,
+                          horizontalInterval: 10, // Increased for reduced frequency
+                          verticalInterval: 1, // Adjust as needed for vertical lines
+                        ),
+                        titlesData: FlTitlesData(
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 22,
+                              interval: 1,
+                              getTitlesWidget: (value, meta) {
+                                switch (value.toInt()) {
+                                  case 0:
+                                    return Text('1');
+                                  case 1:
+                                    return Text('2');
+                                  case 2:
+                                    return Text('3');
+                                  case 3:
+                                    return Text('4');
+                                  case 4:
+                                    return Text('5');
+                                  default:
+                                    return Text('');
+                                }
+                              },
+                            ),
                           ),
-                          // Change the label color to dark grey
-                          labelStyle: charts.TextStyleSpec(
-                            color: charts.MaterialPalette.gray.shadeDefault,
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (value, meta) {
+                                TextStyle customStyle = TextStyle(
+                                  fontSize: 12, // Adjusted font size
+                                  fontWeight: FontWeight.bold,
+                                );
+                                // Convert value to int to remove the decimal point
+                                return Text(value.toInt().toString(), style: customStyle);
+                              },
+                              reservedSize: 40, // Adjusted reserved size for labels
+                            ),
+                          ),
+                          rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
                           ),
                         ),
-                        tickProviderSpec: charts.BasicNumericTickProviderSpec(
-                          desiredTickCount: 4,
+                        borderData: FlBorderData(
+                          show: true,
                         ),
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: [
+                              FlSpot(0, 70),
+                              FlSpot(1, 85),
+                              FlSpot(2, 75),
+                              FlSpot(3, 90),
+                              FlSpot(4, 95),
+                            ],
+                            isCurved: true,
+                            color: Colors.blue,
+                            barWidth: 5,
+                            isStrokeCapRound: true,
+                            dotData: FlDotData(show: true),
+                            belowBarData: BarAreaData(show: false),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -79,33 +129,4 @@ class _RecentActivityWithBarChartState
       ),
     );
   }
-
-  static List<charts.Series<WorkoutAccuracy, String>> createSampleData() {
-    final bicepCurlAccuracy = [
-      WorkoutAccuracy('Mon', 10),
-      WorkoutAccuracy('Tue', 35),
-      WorkoutAccuracy('Wed', 23),
-      WorkoutAccuracy('Thu', 42),
-      WorkoutAccuracy('Fri', 69),
-    ];
-
-    return [
-      charts.Series<WorkoutAccuracy, String>(
-        id: 'Bicep Curl',
-        domainFn: (WorkoutAccuracy accuracy, _) => accuracy.session,
-        measureFn: (WorkoutAccuracy accuracy, _) => accuracy.percentage,
-        data: bicepCurlAccuracy,
-        // Change the color back to blue for the bars
-        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        labelAccessorFn: (WorkoutAccuracy row, _) => '${row.percentage}%',
-      ),
-    ];
-  }
-}
-
-class WorkoutAccuracy {
-  final String session;
-  final int percentage;
-
-  WorkoutAccuracy(this.session, this.percentage);
 }

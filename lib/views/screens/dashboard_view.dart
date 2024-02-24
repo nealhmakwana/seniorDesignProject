@@ -44,7 +44,9 @@ class _DashboardViewState extends State<DashboardView> {
                   }
               ),
               CalendarWidget(),
-              RecentActivityWithBarChart(),
+              RecentActivityGraphWidget(),
+              // insert a space between the content and the bottom of the screen
+              SizedBox(height: 25),
             ],
           ),
         ),

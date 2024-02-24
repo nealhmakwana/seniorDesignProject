@@ -7,6 +7,8 @@ import 'package:senior_design/views/screens/signin_view.dart';
 import 'package:flutter/material.dart';
 import 'package:senior_design/views/screens/welcome_view.dart';
 
+import '../../views/screens/workoutdetails_view.dart';
+
 class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -22,6 +24,16 @@ class Routes {
         return MaterialPageRoute(builder: (context) => PatientAccountView());
       case RoutesName.doctorAccount:
         return MaterialPageRoute(builder: (context) => DoctorAccountView());
+      case RoutesName.workoutDetails:
+        final selectedDay = settings.arguments as DateTime?;
+        // Ensure that selectedDay is not null before navigating
+        if (selectedDay != null) {
+          return MaterialPageRoute(builder: (context) => WorkoutDetailsView(selectedDay: selectedDay));
+        } else {
+          // Handle the case where selectedDay is null
+          // This could navigate back or show an error message
+          return MaterialPageRoute(builder: (context) => const Scaffold(body: Center(child: Text("Error: No selected day"))));
+        }
       default:
         return MaterialPageRoute(builder: (context) {
           return const Scaffold(
