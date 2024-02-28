@@ -26,7 +26,8 @@ class Routes {
         return MaterialPageRoute(builder: (context) => DoctorAccountView());
       case RoutesName.workoutDetails:
         final selectedDay = settings.arguments as DateTime;
-        return MaterialPageRoute(builder: (context) => WorkoutDetailsView(selectedDay: selectedDay));
+        return MaterialPageRoute(
+            builder: (context) => WorkoutDetailsView(selectedDay: selectedDay));
       default:
         return MaterialPageRoute(builder: (context) {
           return const Scaffold(

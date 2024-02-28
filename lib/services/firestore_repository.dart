@@ -35,8 +35,7 @@ class FireStoreRepository {
       (snapshot) {
         for (var docSnapshot in snapshot.docs) {
           DateTime dateTime = docSnapshot.data()['timestamp'].toDate();
-          String formattedDate =
-              DateFormat("MMM d (h:mm a)").format(dateTime);
+          String formattedDate = DateFormat("MMM d (h:mm a)").format(dateTime);
 
           workoutData.add({
             "accuracy": docSnapshot.data()['accuracy'],
@@ -48,13 +47,15 @@ class FireStoreRepository {
       },
       onError: (e) => print("Error completing: $e"),
     );
+
+    workoutData.sort((a, b) => a["workout_id"].compareTo(b["workout_id"]));
+    print(workoutData);
     return workoutData;
   }
 
   Future<List<DateTime>> fetchWorkoutDataWithTime(
       User user, DateTime earliestTs, DateTime latestTs) async {
     Set<DateTime> workoutData = {};
-
 
     await _firestore
         .collection("workouts")
