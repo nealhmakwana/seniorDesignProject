@@ -154,13 +154,21 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                     ),
                     onDaySelected: (selectedDay, focusedDay) {
                       if (isWorkoutDay(selectedDay)) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                WorkoutDetailsView(selectedDay: selectedDay),
-                          ),
-                        );
+                        DateTime latestTs = DateTime(selectedDay.year,
+                                selectedDay.month, selectedDay.day)
+                            .add(const Duration(days: 1));
+                        widget.userViewModel
+                            .fetchWorkoutsInDay(selectedDay, latestTs)
+                            .then((items) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) {
+                              //widget.userViewModel.fetchWorkoutDataWithTime(selectedDay, latestTs);
+                              return WorkoutDetailsView(
+                                  selectedDay: selectedDay, workouts: items);
+                            }),
+                          );
+                        });
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -180,8 +188,17 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   }
 
   Future<void> updateCalendar(DateTime earliestTs) async {
+    int year = earliestTs.year;
+    int month = earliestTs.month;
+    if (month == 12) {
+      year += 1;
+      month = 1;
+    } else {
+      month += 1;
+    }
+    DateTime firstDayOfNextMonth = DateTime(year, month, 1, 0, 0, 0);
     var data = await widget.userViewModel
-        .fetchWorkoutDataWithTime(earliestTs, DateTime.now());
+        .fetchWorkoutsInMonth(earliestTs, firstDayOfNextMonth);
     setState(() {
       workoutDays = data;
     });
