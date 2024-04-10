@@ -35,7 +35,7 @@ class FireStoreRepository {
       (snapshot) {
         for (var docSnapshot in snapshot.docs) {
           DateTime dateTime = docSnapshot.data()['timestamp'].toDate();
-          String formattedDate = DateFormat("MMM d (h:mm a)").format(dateTime);
+          String formattedDate = DateFormat("MMM d yyyy (h:mm a)").format(dateTime);
 
           workoutData.add({
             "accuracy": docSnapshot.data()['accuracy'],
@@ -54,12 +54,12 @@ class FireStoreRepository {
   }
 
   Future<List<Map<String, dynamic>>> fetchWorkoutDataWithTime(
-      User user, DateTime earliestTs, DateTime latestTs) async {
+      String email, DateTime earliestTs, DateTime latestTs) async {
     List<Map<String, dynamic>> workoutData = [];
 
     await _firestore
         .collection("workouts")
-        .doc(user.email)
+        .doc(email)
         .collection("data")
         .where('timestamp', isGreaterThanOrEqualTo: earliestTs)
         .where('timestamp', isLessThan: latestTs)
@@ -78,5 +78,61 @@ class FireStoreRepository {
       onError: (e) => print("Error completing: $e"),
     );
     return workoutData;
+  }
+
+  Future<List<String>> fetchAllPatients(User user) async {
+    List<String> patients = [];
+    DocumentSnapshot documentSnapshot =
+        await _firestore.collection("patients").doc(user.email).get();
+    if (documentSnapshot.exists) {
+      Map<String, dynamic> data =
+          documentSnapshot.data() as Map<String, dynamic>;
+      for (var element in data["patients"]) {
+        patients.add(element.toString());
+      }
+    }
+    return patients;
+  }
+
+  Future<String> addPatient(String patientEmail, User doctor) async {
+    String message = "";
+    //Check if the given patient exists as a user
+    DocumentSnapshot patientSnapshot =
+        await _firestore.collection("users").doc(patientEmail).get();
+    if (patientSnapshot.exists) {
+      //Check if the given patient is a valid patient (a patient who completed signup)
+      bool? isPatientValid = patientSnapshot["isPatient"] && patientSnapshot["completedSignUp"];
+      if (!isPatientValid) {
+        message = "Given user is not a valid patient.";
+      } else {
+        //Check if the doctor has any patients
+        DocumentSnapshot doctorSnapshot =
+            await _firestore.collection("patients").doc(doctor.email).get();
+        if (doctorSnapshot.exists) {
+          var patients =
+              List.from(doctorSnapshot.get("patients") as List<dynamic>);
+          //Check if the given patient is already a patient of the doctor
+          if (patients.contains(patientEmail)) {
+            message = "Patient already added.";
+          } else {
+            patients.add(patientEmail);
+            await _firestore
+                .collection("patients")
+                .doc(doctor.email)
+                .update({"patients": patients});
+            message = "Patient added.";
+          }
+        } else {
+          Map<String, dynamic> data = {
+            "patients": [patientEmail]
+          };
+          await _firestore.collection("patients").doc(doctor.email).set(data);
+          message = "Patient added.";
+        }
+      }
+    } else {
+      message = "Given patient does not exist.";
+    }
+    return message;
   }
 }

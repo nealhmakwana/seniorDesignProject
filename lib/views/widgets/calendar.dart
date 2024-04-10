@@ -6,9 +6,13 @@ import 'package:senior_design/view_models/user_view_model.dart';
 class CalendarWidget extends StatefulWidget {
   final UserViewModel userViewModel;
   final List<DateTime> workoutData;
+  final String userName;
 
   const CalendarWidget(
-      {super.key, required this.userViewModel, required this.workoutData});
+      {super.key,
+      required this.userViewModel,
+      required this.workoutData,
+      this.userName = ''});
 
   @override
   _CalendarWidgetState createState() => _CalendarWidgetState();
@@ -158,12 +162,12 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                                 selectedDay.month, selectedDay.day)
                             .add(const Duration(days: 1));
                         widget.userViewModel
-                            .fetchWorkoutsInDay(selectedDay, latestTs)
+                            .fetchWorkoutsInDay(
+                                selectedDay, latestTs, widget.userName)
                             .then((items) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) {
-                              //widget.userViewModel.fetchWorkoutDataWithTime(selectedDay, latestTs);
                               return WorkoutDetailsView(
                                   selectedDay: selectedDay, workouts: items);
                             }),
@@ -198,7 +202,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     }
     DateTime firstDayOfNextMonth = DateTime(year, month, 1, 0, 0, 0);
     var data = await widget.userViewModel
-        .fetchWorkoutsInMonth(earliestTs, firstDayOfNextMonth);
+        .fetchWorkoutsInMonth(earliestTs, firstDayOfNextMonth, widget.userName);
     setState(() {
       workoutDays = data;
     });

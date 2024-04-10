@@ -170,38 +170,66 @@ class UserViewModel with ChangeNotifier {
     setUser(user);
   }
 
-  Future<List<Map<String, dynamic>>> fetchWorkoutData(
-      int numberOfWorkouts) async {
+  Future<List<Map<String, dynamic>>> fetchWorkoutData(int numberOfWorkouts,
+      [String? email]) async {
+    User inputUser;
+    if (email == null || email.isEmpty) {
+      inputUser = user;
+    } else {
+      inputUser = await _fireStoreRepository.fetchUser(email);
+    }
     numberOfWorkouts =
-        (numberOfWorkouts != -1 ? numberOfWorkouts : user.totalWorkouts)!;
+        (numberOfWorkouts != -1 ? numberOfWorkouts : inputUser.totalWorkouts)!;
     return await _fireStoreRepository.fetchWorkoutDataWithId(
-        user, numberOfWorkouts);
+        inputUser, numberOfWorkouts);
   }
 
   Future<List<DateTime>> fetchWorkoutsInMonth(
-      DateTime earliestTs, DateTime latestTs) async {
+      DateTime earliestTs, DateTime latestTs,
+      [String? email]) async {
     DateTime now = DateTime.now();
     if (earliestTs.isAfter(now)) {
       return [];
+    }
+    String? fetchEmail = "";
+    if (email == null || email.isEmpty) {
+      fetchEmail = user.email;
+    } else {
+      fetchEmail = email;
     }
     latestTs = latestTs.isAfter(DateTime.now())
         ? DateTime.now()
         : latestTs; // Check if the given variable is valid
     var workouts = await _fireStoreRepository.fetchWorkoutDataWithTime(
-        user, earliestTs, latestTs);
+        fetchEmail!, earliestTs, latestTs);
     return workouts.map((map) => map['timestamp'] as DateTime).toSet().toList();
   }
 
   Future<List<Map<String, dynamic>>> fetchWorkoutsInDay(
-      DateTime earliestTs, DateTime latestTs) async {
+      DateTime earliestTs, DateTime latestTs,
+      [String? email]) async {
     DateTime now = DateTime.now();
     if (earliestTs.isAfter(now)) {
       return [];
+    }
+    String? fetchEmail = "";
+    if (email == null || email.isEmpty) {
+      fetchEmail = user.email;
+    } else {
+      fetchEmail = email;
     }
     latestTs = latestTs.isAfter(DateTime.now())
         ? DateTime.now()
         : latestTs; // Check if the given variable is valid
     return await _fireStoreRepository.fetchWorkoutDataWithTime(
-        user, earliestTs, latestTs);
+        fetchEmail!, earliestTs, latestTs);
+  }
+
+  Future<List<String>> fetchAllPatients() async {
+    return await _fireStoreRepository.fetchAllPatients(user);
+  }
+
+  Future<String> addPatient(String patientEmail) async {
+    return await _fireStoreRepository.addPatient(patientEmail, user);
   }
 }
