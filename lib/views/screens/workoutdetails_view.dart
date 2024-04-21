@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-// 1. Workout Day and Time Widget
+// Workout Day and Time Widget
 class WorkoutDayAndTimeCard extends StatelessWidget {
   final DateTime dayAndTime;
 
@@ -32,13 +32,10 @@ class WorkoutDayAndTimeCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(
-                height: 16), // Adjust space between title and date as needed
+            const SizedBox(height: 16),
             Text(
               formattedDate,
-              style: const TextStyle(
-                  fontSize: 22,
-                  color: Colors.blue), // Use a larger font size for the date
+              style: const TextStyle(fontSize: 22, color: Colors.blue),
             ),
           ],
         ),
@@ -47,9 +44,9 @@ class WorkoutDayAndTimeCard extends StatelessWidget {
   }
 }
 
-// 2. Workout Duration Widget
+// Workout Duration Widget
 class WorkoutDurationCard extends StatelessWidget {
-  final int duration; // Duration in minutes
+  final int duration; // Duration in seconds
 
   const WorkoutDurationCard({Key? key, required this.duration})
       : super(key: key);
@@ -78,7 +75,7 @@ class WorkoutDurationCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              '$duration minutes',
+              '$duration seconds',
               style: const TextStyle(fontSize: 22, color: Colors.blue),
             ),
           ],
@@ -88,7 +85,7 @@ class WorkoutDurationCard extends StatelessWidget {
   }
 }
 
-// 3. Workout Type Widget
+// Workout Type Widget
 class WorkoutTypeCard extends StatelessWidget {
   final String type;
 
@@ -128,9 +125,9 @@ class WorkoutTypeCard extends StatelessWidget {
   }
 }
 
-// 4. Workout Accuracy Widget
+// Workout Accuracy Widget
 class WorkoutAccuracyCard extends StatelessWidget {
-  final int accuracy; // Accuracy in percentage
+  final double accuracy; // Accuracy in percentage
 
   const WorkoutAccuracyCard({Key? key, required this.accuracy})
       : super(key: key);
@@ -169,29 +166,105 @@ class WorkoutAccuracyCard extends StatelessWidget {
   }
 }
 
-class WorkoutDetailsView extends StatelessWidget {
-  final DateTime selectedDay;
-  final List<Map<String, dynamic>> workouts;
-
-  const WorkoutDetailsView(
-      {Key? key, required this.selectedDay, required this.workouts})
-      : super(key: key);
+// Repetitions Widget
+class RepetitionsCard extends StatelessWidget {
+  final List<dynamic> repList;
+  const RepetitionsCard({Key? key, required this.repList}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // CHANGE HERE!!!!
-    final int workoutDuration = workouts[0]['duration']; // in minutes
-    const String workoutType = "Bicep Curl";
-    final int workoutAccuracy = workouts[0]['accuracy']; // in percentage
-    final DateTime workoutTime = workouts[0]['timestamp'];
+    // Generate list of colors for each circle
+    List<Color> colors = List.generate(repList.length, (index) {
+      if (repList[index]) {
+        return Colors.green;
+      } else {
+        return Colors.red;
+      }
+    });
+
+    List<Widget> circleWidgets = List.generate(repList.length, (index) {
+      return Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: colors[index],
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child:
+            Text('${index + 1}', style: const TextStyle(color: Colors.white)),
+      );
+    });
+
+    return Card(
+      margin: const EdgeInsets.all(8.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.thumbs_up_down, color: Colors.black),
+                SizedBox(width: 8),
+                Text(
+                  'Repetitions',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8, // horizontal spacing
+              runSpacing: 8, // vertical spacing
+              children: circleWidgets,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class WorkoutDetailsView extends StatefulWidget {
+  final List<Map<String, dynamic>> workouts;
+  final bool isFromWorkout;
+
+  const WorkoutDetailsView(
+      {Key? key, required this.workouts, required this.isFromWorkout})
+      : super(key: key);
+
+  @override
+  _WorkoutDetailsViewState createState() => _WorkoutDetailsViewState();
+}
+
+class _WorkoutDetailsViewState extends State<WorkoutDetailsView> {
+  String dropdownValue = '1'; // Initial dropdown value
+  late Map<String, dynamic> selectedWorkout;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedWorkout = widget.workouts[0];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> dropdownItems = List.generate(
+        widget.workouts.length, (index) => (index + 1).toString());
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.check),
+          onPressed: () => widget.isFromWorkout
+              ? popMultiple(context, 5)
+              : Navigator.of(context).pop(),
         ),
-        title: const Text('Back'),
+        title: const Text('Done'),
         centerTitle: false,
         titleSpacing: 0,
         elevation: 0,
@@ -200,19 +273,51 @@ class WorkoutDetailsView extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 20.0, left: 20.0, bottom: 20.0),
-            child: Text(
-              'Workout Details',
-              style: TextStyle(fontSize: 35.0, fontWeight: FontWeight.bold),
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0, left: 20.0, right: 20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Workout Details',
+                  style: TextStyle(fontSize: 35.0, fontWeight: FontWeight.bold),
+                ),
+                DropdownButton<String>(
+                  value: dropdownValue,
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValue = newValue!;
+                      int index = int.parse(dropdownValue) - 1;
+                      selectedWorkout = widget.workouts[index];
+                    });
+                  },
+                  items: dropdownItems
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
           ),
-          WorkoutDayAndTimeCard(dayAndTime: workoutTime),
-          WorkoutDurationCard(duration: workoutDuration),
-          const WorkoutTypeCard(type: workoutType),
-          WorkoutAccuracyCard(accuracy: workoutAccuracy),
+          const WorkoutTypeCard(type: "Bicep Curl"),
+          WorkoutDayAndTimeCard(
+              dayAndTime: selectedWorkout['timestamp'] ?? DateTime.now()),
+          WorkoutDurationCard(duration: selectedWorkout['duration'] ?? 0),
+          WorkoutAccuracyCard(accuracy: selectedWorkout['accuracy'] ?? 0.0),
+          RepetitionsCard(repList: selectedWorkout['repList'] ?? []),
         ],
       ),
     );
   }
+}
+
+void popMultiple(BuildContext context, int count) {
+  int popCount = 0;
+  Navigator.popUntil(context, (route) {
+    return popCount++ >= count;
+  });
 }

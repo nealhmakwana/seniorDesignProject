@@ -30,11 +30,11 @@ class Routes {
         return MaterialPageRoute(
             builder: (context) => const DoctorAccountView());
       case RoutesName.workoutDetails:
-        final selectedDay = settings.arguments as DateTime;
         final workouts = settings.arguments as List<Map<String, dynamic>>;
+        final isFromWorkout = settings.arguments as bool;
         return MaterialPageRoute(
             builder: (context) => WorkoutDetailsView(
-                selectedDay: selectedDay, workouts: workouts));
+                workouts: workouts, isFromWorkout: isFromWorkout));
       case RoutesName.workoutConnect:
         return MaterialPageRoute(
             builder: (context) => const WorkoutConnectView());
